@@ -6,7 +6,7 @@ import (
 
 	"github.com/nextpkg/nextcfg"
 	"github.com/nextpkg/nextcfg/cmd"
-	"github.com/nextpkg/nextcfg/hub"
+	"github.com/nextpkg/nextcfg/registry"
 	"github.com/nextpkg/nextcfg/source"
 	"github.com/spf13/pflag"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -35,11 +35,11 @@ var (
 const sourceName = "configmap"
 
 func init() {
-	hub.SetDefaultSource(sourceName)
+	registry.SetCfgSource(sourceName)
 
-	// 此处依赖于hub的初始化参数--source
-	cmd.AddSubFlags(hub.SourceFlag, sourceName, func() *pflag.FlagSet {
-		fs := pflag.NewFlagSet("--source=configmap", pflag.ContinueOnError)
+	// 此处依赖于registry的初始化参数--cfg
+	cmd.AddSubFlags(registry.CfgFlag, sourceName, func() *cmd.FlagSet {
+		fs := cmd.NewFlagSet("--cfg=configmap", pflag.ContinueOnError)
 		fs.StringVar(&DefaultConfigPath, "config_path", DefaultConfigPath, "configmap system path")
 		fs.StringVar(&DefaultNamespace, "config_namespace", DefaultNamespace, "configmap system namespace")
 		fs.StringVar(&DefaultGroup, "config_group", DefaultGroup, "configmap system group")
@@ -47,7 +47,7 @@ func init() {
 	})
 
 	// 注册
-	hub.SetToHub(sourceName, func(target string) nextcfg.Loader {
+	registry.SetCfgLoader(sourceName, func(target string) nextcfg.Loader {
 		return GetLoader(DefaultGroup, target,
 			WithConfigPath(DefaultConfigPath),
 			WithNamespace(DefaultNamespace),
